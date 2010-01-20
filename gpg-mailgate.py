@@ -19,7 +19,8 @@ for sect in _cfg.sections():
 raw = sys.stdin.read()
 raw_message = email.message_from_string( raw )
 from_addr = raw_message['From']
-to_addrs = map(lambda x: x.strip(), raw_message['To'].split(','))
+if raw_message.has_key('To'):
+	to_addrs = map(lambda x: x.strip(), raw_message['To'].split(','))
 if raw_message.has_key('Cc'):
 	to_addrs.extend( map(lambda x: x.strip(), raw_message['Cc'].split(',')))
 if raw_message.has_key('Bcc'):
