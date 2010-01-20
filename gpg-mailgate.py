@@ -31,7 +31,6 @@ def send_msg( message, recipients = None ):
 	relay = (cfg['relay']['host'], int(cfg['relay']['port']))
 	smtp = smtplib.SMTP(relay[0], relay[1])
 	smtp.sendmail( from_addr, recipients, message.as_string() )
-	sys.exit(0)
 
 gpg_to = list()
 ungpg_to = list()
