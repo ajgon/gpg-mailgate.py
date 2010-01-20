@@ -34,6 +34,7 @@ def send_msg( message, recipients = None ):
 	sys.exit(0)
 
 gpg_to = list()
+ungpg_to = list()
 keys = GnuPG.public_keys( cfg['gpg']['keyhome'] )
 for to in to_addrs:
 	domain = to.split('@')[1]
@@ -42,11 +43,16 @@ for to in to_addrs:
 			gpg_to.append( (to, to) )
 		elif cfg.has_key('keymap') and cfg['keymap'].has_key(to):
 			gpg_to.append( (to, cfg['keymap'][to]) )
+	else:
+		ungpg_to.append(to)
 
 if gpg_to == list():
 	if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 		raw_message['X-GPG-Mailgate'] = 'Not encrypted, public key not found'
 	send_msg( raw_message )
+
+if ungpg_to != list():
+	send_msg( raw_message, ungpg_to )
 
 if raw_message.is_multipart():
 	payload = list()
@@ -63,7 +69,13 @@ if cfg.has_key('logging') and cfg['logging'].has_key('file'):
 if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 	raw_message['X-GPG-Mailgate'] = 'Encrypted by GPG Mailgate 0.1'
 
-gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], map(lambda x: x[1], gpg_to) )
+gpg_to_cmdline = list()
+gpg_to_smtp = list()
+for rcpt in gpg_to:
+	gpg_to_smtp.append(rcpt[0])
+	gpg_to_cmdline.extend(rcpt[1].split(','))
+
+gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline )
 gpg.update( raw_message.get_payload() )
 raw_message.set_payload( gpg.encrypt() )
-send_msg( raw_message, map(lambda x: x[0], gpg_to) )
+send_msg( raw_message, gpg_to_smtp )
