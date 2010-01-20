@@ -30,6 +30,10 @@ if raw_message.has_key('Bcc'):
 def send_msg( message, recipients = None ):
 	if recipients == None:
 		recipients = to_addrs
+	if cfg.has_key('logging') and cfg['logging'].has_key('file'):
+		log = open(cfg['logging']['file'], 'a')
+		log.write("Sending email to: %s\n" % ' '.join( recipients ))
+		log.close()
 	relay = (cfg['relay']['host'], int(cfg['relay']['port']))
 	smtp = smtplib.SMTP(relay[0], relay[1])
 	smtp.sendmail( from_addr, recipients, message.as_string() )
@@ -51,6 +55,7 @@ if gpg_to == list():
 	if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 		raw_message['X-GPG-Mailgate'] = 'Not encrypted, public key not found'
 	send_msg( raw_message )
+	sys.exit(0)
 
 if ungpg_to != list():
 	send_msg( raw_message, ungpg_to )
@@ -62,19 +67,19 @@ if raw_message.is_multipart():
 			payload.append(part)
 	raw_message.set_payload( payload )
 
-if cfg.has_key('logging') and cfg['logging'].has_key('file'):
-	log = open(cfg['logging']['file'], 'a')
-	log.write("Encrypting email to: %s\n" % ' '.join( map(lambda x: x[0], gpg_to) ))
-	log.close()
-
 if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
-	raw_message['X-GPG-Mailgate'] = 'Encrypted by GPG Mailgate 0.1'
+	raw_message['X-GPG-Mailgate'] = 'Encrypted by GPG Mailgate 0.2'
 
 gpg_to_cmdline = list()
 gpg_to_smtp = list()
 for rcpt in gpg_to:
 	gpg_to_smtp.append(rcpt[0])
 	gpg_to_cmdline.extend(rcpt[1].split(','))
+
+if cfg.has_key('logging') and cfg['logging'].has_key('file'):
+	log = open(cfg['logging']['file'], 'a')
+	log.write("Encrypting email to: %s\n" % ', '.join( gpg_to_cmdline ))
+	log.close()
 
 gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline )
 gpg.update( raw_message.get_payload() )
