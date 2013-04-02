@@ -20,4 +20,4 @@ port = 10028
 #	uid                          Joe User <user@example.com>
 #	sub   2048g/BBBBBBBBBBBBBBBB 2007-10-22
 # You want the AAAAAAAAAAAAAAAA not BBBBBBBBBBBBBBBB.
-#user@example.com	<gpg key id>
+#user@example.com = <gpg key id>
