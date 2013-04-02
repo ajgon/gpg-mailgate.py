@@ -2,6 +2,7 @@
 
 from ConfigParser import RawConfigParser
 import email
+import re
 import GnuPG
 import smtplib
 import sys
@@ -21,11 +22,11 @@ raw_message = email.message_from_string( raw )
 from_addr = raw_message['From']
 to_addrs = list()
 if raw_message.has_key('To'):
-	to_addrs.extend( map(lambda x: x.strip(), raw_message['To'].split(',')) )
+	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['To']])] )
 if raw_message.has_key('Cc'):
-	to_addrs.extend( map(lambda x: x.strip(), raw_message['Cc'].split(',')) )
+	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Cc']])] )
 if raw_message.has_key('Bcc'):
-	to_addrs.extend( map(lambda x: x.strip(), raw_message['Bcc'].split(',')) )
+	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Bcc']])] )
 
 def send_msg( message, recipients = None ):
 	if recipients == None:
@@ -60,6 +61,7 @@ if gpg_to == list():
 	if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 		raw_message['X-GPG-Mailgate'] = 'Not encrypted, public key not found'
 	send_msg( raw_message )
+	exit()
 
 if ungpg_to != list():
 	send_msg( raw_message, ungpg_to )
@@ -79,6 +81,7 @@ if cfg.has_key('logging') and cfg['logging'].has_key('file'):
 if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 	raw_message['X-GPG-Mailgate'] = 'Encrypted by GPG Mailgate'
 
+raw_message['Content-Type'] = re.sub(r'multipart/[a-z]+', 'text/plain', raw_message['Content-Type'])
 gpg_to_cmdline = list()
 gpg_to_smtp = list()
 for rcpt in gpg_to:
