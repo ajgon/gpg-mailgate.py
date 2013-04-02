@@ -41,7 +41,7 @@ def send_msg( message, recipients = None ):
 def get_msg( message ):
 	if not message.is_multipart():
 		return message.get_payload()
-	return '\n\n'.join( message.get_payload() )
+	return '\n\n'.join( [str(m) for m in message.get_payload()] )
 
 gpg_to = list()
 ungpg_to = list()
