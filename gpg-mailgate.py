@@ -39,6 +39,20 @@ def send_msg( message, recipients = None ):
 	smtp = smtplib.SMTP(relay[0], relay[1])
 	smtp.sendmail( from_addr, recipients, message.as_string() )
 
+def encrypt_payload( payload, gpg_to_cmdline ):
+	gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline )
+	raw_payload = payload.get_payload(decode=True)
+	gpg.update( raw_payload )
+	payload.set_payload( gpg.encrypt() )
+	if payload['Content-Disposition']:
+		payload.replace_header( 'Content-Disposition', re.sub(r'filename="([^"]+)"', r'filename="\1.pgp"', payload['Content-Disposition']) )
+	if payload['Content-Type']:
+		payload.replace_header( 'Content-Type', re.sub(r'name="([^"]+)"', r'name="\1.pgp"', payload['Content-Type']) )
+		if payload.get_content_type() != 'text/plain' and payload.get_content_type != 'text/html':
+			payload.replace_header( 'Content-Type', re.sub(r'^[a-z/]+;', r'application/octet-stream;', payload['Content-Type']) )
+			payload.set_payload( "\n".join( filter( lambda x:re.search(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$',x), payload.get_payload().split("\n") ) ) )
+	return payload
+
 def get_msg( message ):
 	if not message.is_multipart():
 		return message.get_payload()
@@ -66,13 +80,6 @@ if gpg_to == list():
 if ungpg_to != list():
 	send_msg( raw_message, ungpg_to )
 
-if raw_message.is_multipart():
-	payload = list()
-	for part in raw_message.get_payload():
-		if part.get_content_type() == "text/plain":
-			payload.append(part)
-	raw_message.set_payload( payload )
-
 if cfg.has_key('logging') and cfg['logging'].has_key('file'):
 	log = open(cfg['logging']['file'], 'a')
 	log.write("Encrypting email to: %s\n" % ' '.join( map(lambda x: x[0], gpg_to) ))
@@ -81,14 +88,15 @@ if cfg.has_key('logging') and cfg['logging'].has_key('file'):
 if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 	raw_message['X-GPG-Mailgate'] = 'Encrypted by GPG Mailgate'
 
-raw_message['Content-Type'] = re.sub(r'multipart/[a-z]+', 'text/plain', raw_message['Content-Type'])
 gpg_to_cmdline = list()
 gpg_to_smtp = list()
 for rcpt in gpg_to:
 	gpg_to_smtp.append(rcpt[0])
 	gpg_to_cmdline.extend(rcpt[1].split(','))
 
-gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline )
-gpg.update( get_msg(raw_message) )
-raw_message.set_payload( gpg.encrypt() )
+encrypted_payloads = list()
+for payload in raw_message.get_payload():
+	encrypted_payloads.append( encrypt_payload( payload, gpg_to_cmdline ) )
+raw_message.set_payload( encrypted_payloads )
+
 send_msg( raw_message, gpg_to_smtp )
