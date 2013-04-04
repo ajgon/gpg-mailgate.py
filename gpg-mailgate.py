@@ -53,6 +53,15 @@ def encrypt_payload( payload, gpg_to_cmdline ):
 			payload.set_payload( "\n".join( filter( lambda x:re.search(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$',x), payload.get_payload().split("\n") ) ) )
 	return payload
 
+def encrypt_all_payloads( payloads, gpg_to_cmdline ):
+	encrypted_payloads = list()
+	for payload in payloads:
+		if( type( payload.get_payload() ) == list ):
+			encrypted_payloads.append( encrypt_all_payloads( payload.get_payload(), gpg_to_cmdline ) )
+		else:
+			encrypted_payloads.append( [encrypt_payload( payload, gpg_to_cmdline )] )
+	return sum(encrypted_payloads, [])
+
 def get_msg( message ):
 	if not message.is_multipart():
 		return message.get_payload()
@@ -94,9 +103,7 @@ for rcpt in gpg_to:
 	gpg_to_smtp.append(rcpt[0])
 	gpg_to_cmdline.extend(rcpt[1].split(','))
 
-encrypted_payloads = list()
-for payload in raw_message.get_payload():
-	encrypted_payloads.append( encrypt_payload( payload, gpg_to_cmdline ) )
+encrypted_payloads = encrypt_all_payloads( raw_message.get_payload(), gpg_to_cmdline )
 raw_message.set_payload( encrypted_payloads )
 
 send_msg( raw_message, gpg_to_smtp )
