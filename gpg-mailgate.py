@@ -21,16 +21,26 @@ raw = sys.stdin.read()
 raw_message = email.message_from_string( raw )
 from_addr = raw_message['From']
 to_addrs = list()
+encrypted_to_addrs = list()
 if raw_message.has_key('To'):
 	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['To']])] )
 if raw_message.has_key('Cc'):
 	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Cc']])] )
 if raw_message.has_key('Bcc'):
 	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Bcc']])] )
+if raw_message.has_key('X-GPG-Encrypt-To'):
+        tmp_list = list()
+        tmp_list.extend( [e[1] for e in email.utils.getaddresses([raw_message['X-GPG-Encrypt-To']])] )
+        encrypted_to_addrs.extend( [e for e in tmp_list if e in to_addrs] )
+        for eaddr in encrypted_to_addrs:
+                if eaddr in to_addrs:
+                        to_addrs.remove( eaddr )
+if raw_message.has_key('X-GPG-Encrypt-Cc'):
+        encrypted_to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['X-GPG-Encrypt-Cc']])] )
 
 def send_msg( message, recipients = None ):
 	if recipients == None:
-		recipients = to_addrs
+		return
 	if cfg.has_key('logging') and cfg['logging'].has_key('file'):
 		log = open(cfg['logging']['file'], 'a')
 		log.write("Sending email to: <%s>\n" % '> <'.join( recipients ))
@@ -67,9 +77,17 @@ def get_msg( message ):
 		return message.get_payload()
 	return '\n\n'.join( [str(m) for m in message.get_payload()] )
 
+keys = GnuPG.public_keys( cfg['gpg']['keyhome'] )
 gpg_to = list()
 ungpg_to = list()
-keys = GnuPG.public_keys( cfg['gpg']['keyhome'] )
+for enc in encrypted_to_addrs:
+	domain = enc.split('@')[1]
+	if domain in cfg['default']['domains'].split(','):
+		if enc in keys:
+			gpg_to.append( (enc, enc) )
+                elif cfg.has_key('keymap') and cfg['keymap'].has_key(enc):
+                        gpg_to.append( (enc, cfg['keymap'][enc]) )
+			
 for to in to_addrs:
 	domain = to.split('@')[1]
 	if domain in cfg['default']['domains'].split(','):
