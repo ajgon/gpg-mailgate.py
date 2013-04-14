@@ -2,6 +2,7 @@
 
 from ConfigParser import RawConfigParser
 import email
+import email.message
 import re
 import GnuPG
 import smtplib
@@ -65,6 +66,10 @@ def encrypt_payload( payload, gpg_to_cmdline ):
 
 def encrypt_all_payloads( payloads, gpg_to_cmdline ):
 	encrypted_payloads = list()
+	if type( payloads ) == str:
+		msg = email.message.Message()
+		msg.set_payload( payloads )
+		return encrypt_payload( msg, gpg_to_cmdline ).as_string()
 	for payload in payloads:
 		if( type( payload.get_payload() ) == list ):
 			encrypted_payloads.append( encrypt_all_payloads( payload.get_payload(), gpg_to_cmdline ) )
