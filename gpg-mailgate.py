@@ -30,14 +30,6 @@ if raw_message.has_key('Cc'):
 	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Cc']])] )
 if raw_message.has_key('Bcc'):
 	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Bcc']])] )
-if raw_message.has_key('X-GPG-Encrypt-To'):
-        tmp_list = list()
-        tmp_list.extend( [e[1] for e in email.utils.getaddresses([raw_message['X-GPG-Encrypt-To']])] )
-        encrypted_to_addrs.extend( [e for e in tmp_list if e in to_addrs] )
-        for eaddr in encrypted_to_addrs:
-                if eaddr in to_addrs:
-                        to_addrs.remove( eaddr )
-	del raw_message['X-GPG-Encrypt-To']
 if raw_message.has_key('X-GPG-Encrypt-Cc'):
         encrypted_to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['X-GPG-Encrypt-Cc']])] )
 	del raw_message['X-GPG-Encrypt-Cc']
