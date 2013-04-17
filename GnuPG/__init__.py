@@ -26,16 +26,7 @@ class GPGEncryptor:
 
 	def encrypt(self):
 		p = subprocess.Popen( self._command(), stdin=subprocess.PIPE, stdout=subprocess.PIPE,stderr=subprocess.PIPE )
-		(stdin, stdout, stderr) = (p.stdin, p.stdout, p.stderr)
-
-		# Write the data
-		stdin.write(self._message)
-		stdin.close()
-
-		# Read the encrypted data
-		p.wait()
-		encdata = stdout.read()
-
+		encdata = p.communicate(input=self._message)[0]
 		return encdata
 
 	def _command(self):
