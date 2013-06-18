@@ -32,5 +32,5 @@ class GPGEncryptor:
 		return encdata
 
 	def _command(self):
-		cmd = "/usr/bin/gpg --homedir %s --batch --yes --pgp7 --no-secmem-warning -a -e -r %s" % (self._keyhome, ' -r '.join(self._recipients))
+		cmd = "/usr/bin/gpg --trust-model always --homedir %s --batch --yes --pgp7 --no-secmem-warning -a -e -r %s" % (self._keyhome, ' -r '.join(self._recipients))
 		return cmd.split()
