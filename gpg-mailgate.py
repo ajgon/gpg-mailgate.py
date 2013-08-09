@@ -31,7 +31,7 @@ if raw_message.has_key('X-GPG-Encrypt-Cc'):
 
 def send_msg( message, recipients = None ):
 	if recipients == None:
-		return
+		recipients = to_addrs
 	if cfg.has_key('logging') and cfg['logging'].has_key('file'):
 		log = open(cfg['logging']['file'], 'a')
 		log.write("Sending email to: <%s>\n" % '> <'.join( recipients ))
