@@ -35,13 +35,6 @@ raw = sys.stdin.read()
 raw_message = email.message_from_string( raw )
 from_addr = raw_message['From']
 to_addrs = sys.argv[1:]
-if verbose:
-	log("to_addrs: '%s'" % "', '".join(to_addrs))
-
-encrypted_to_addrs = list()
-if raw_message.has_key('X-GPG-Encrypt-Cc'):
-	encrypted_to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['X-GPG-Encrypt-Cc']])] )
-	del raw_message['X-GPG-Encrypt-Cc']
 
 def send_msg( message, recipients = None ):
 	if recipients == None:
