@@ -51,7 +51,7 @@ def encrypt_payload( payload, gpg_to_cmdline ):
 		payload.replace_header( 'Content-Disposition', re.sub(r'filename="([^"]+)"', r'filename="\1.pgp"', payload['Content-Disposition']) )
 	if payload['Content-Type']:
 		payload.replace_header( 'Content-Type', re.sub(r'name="([^"]+)"', r'name="\1.pgp"', payload['Content-Type']) )
-		if payload.get_content_type() != 'text/plain' and payload.get_content_type != 'text/html':
+		if 'name="' in payload['Content-Type']:
 			payload.replace_header( 'Content-Type', re.sub(r'^[a-z/]+;', r'application/octet-stream;', payload['Content-Type']) )
 			payload.set_payload( "\n".join( filter( lambda x:re.search(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$',x), payload.get_payload().split("\n") ) ) )
 	return payload
