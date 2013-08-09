@@ -3,11 +3,11 @@
 	   available in the GPG home directory you use in step 2
 2) Configure /etc/gpg-mailgate.conf based on the provided sample config
 3) Place gpg-mailgate.py in /usr/local/bin/
-4) Place the GnuPG directory in /usr/local/lib/python2.5/site-packages
+4) Place the GnuPG directory in /usr/lib/python2.7/ (replace 2.7 with your Python version)
 5) Add the following to the end of /etc/postfix/master.cf
 
 gpg-mailgate	unix	-	n	n	-	-	pipe
-	flags= user=nobody argv=/usr/local/bin/gpg-mailgate.py
+	flags= user=nobody argv=/usr/local/bin/gpg-mailgate.py ${recipient}
 
 127.0.0.1:10028	inet	n	-	n	-	10	smtpd
 	-o content_filter=

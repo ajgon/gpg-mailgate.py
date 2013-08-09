@@ -22,16 +22,11 @@ for sect in _cfg.sections():
 raw = sys.stdin.read()
 raw_message = email.message_from_string( raw )
 from_addr = raw_message['From']
-to_addrs = list()
+to_addrs = sys.argv[1:]
+
 encrypted_to_addrs = list()
-if raw_message.has_key('To'):
-	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['To']])] )
-if raw_message.has_key('Cc'):
-	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Cc']])] )
-if raw_message.has_key('Bcc'):
-	to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['Bcc']])] )
 if raw_message.has_key('X-GPG-Encrypt-Cc'):
-        encrypted_to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['X-GPG-Encrypt-Cc']])] )
+	encrypted_to_addrs.extend( [e[1] for e in email.utils.getaddresses([raw_message['X-GPG-Encrypt-Cc']])] )
 	del raw_message['X-GPG-Encrypt-Cc']
 
 def send_msg( message, recipients = None ):
@@ -85,8 +80,8 @@ for enc in encrypted_to_addrs:
 	if domain in cfg['default']['domains'].split(','):
 		if enc in keys:
 			gpg_to.append( (enc, enc) )
-                elif cfg.has_key('keymap') and cfg['keymap'].has_key(enc):
-                        gpg_to.append( (enc, cfg['keymap'][enc]) )
+		elif cfg.has_key('keymap') and cfg['keymap'].has_key(enc):
+			gpg_to.append( (enc, cfg['keymap'][enc]) )
 			
 for to in to_addrs:
 	domain = to.split('@')[1]
