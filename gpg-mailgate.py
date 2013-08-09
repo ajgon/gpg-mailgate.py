@@ -84,6 +84,8 @@ for enc in encrypted_to_addrs:
 			gpg_to.append( (enc, enc) )
 		elif cfg.has_key('keymap') and cfg['keymap'].has_key(enc):
 			gpg_to.append( (enc, cfg['keymap'][enc]) )
+		else:
+			ungpg_to.append(enc);
 			
 for to in to_addrs:
 	domain = to.split('@')[1]
@@ -92,6 +94,8 @@ for to in to_addrs:
 			gpg_to.append( (to, to) )
 		elif cfg.has_key('keymap') and cfg['keymap'].has_key(to):
 			gpg_to.append( (to, cfg['keymap'][to]) )
+		else:
+			ungpg_to.append(to);
 	else:
 		ungpg_to.append(to)
 
