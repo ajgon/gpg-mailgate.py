@@ -72,7 +72,7 @@ def encrypt_payload( payload, gpg_to_cmdline ):
 				payload.set_payload( "\n".join( filter( lambda x:re.search(r'^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$',x), payload.get_payload().split("\n") ) ) )
 
 	if payload.get('Content-Transfer-Encoding') is not None:
-		payload['Content-Transfer-Encoding'] = "quoted-printable"
+		payload.replace_header( 'Content-Transfer-Encoding', "quoted-printable" )
 
 	return payload
 
