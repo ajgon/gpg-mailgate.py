@@ -82,10 +82,10 @@ def encrypt_all_payloads( message, gpg_to_cmdline ):
 		return encrypt_payload( message, gpg_to_cmdline ).get_payload()
 	for payload in message.get_payload():
 		if( type( payload.get_payload() ) == list ):
-			encrypted_payloads.extend( encrypt_all_payloads( payload, gpg_to_cmdline ) )
+			encrypted_payloads.append( encrypt_all_payloads( payload, gpg_to_cmdline ) )
 		else:
-			encrypted_payloads.append( [encrypt_payload( payload, gpg_to_cmdline )] )
-	return sum(encrypted_payloads, [])
+			encrypted_payloads.append( encrypt_payload( payload, gpg_to_cmdline ) )
+	return encrypted_payloads
 
 def get_msg( message ):
 	if not message.is_multipart():
