@@ -33,5 +33,16 @@ class GPGEncryptor:
 		return encdata
 
 	def _command(self):
-		cmd = "/usr/bin/gpg --trust-model always --homedir %s --batch --yes --pgp7 --no-secmem-warning -a -e -r %s" % (self._keyhome, ' -r '.join(self._recipients))
-		return cmd.split()
+		cmd = ["/usr/bin/gpg", "--trust-model", "always", "--homedir", self._keyhome, "--batch", "--yes", "--pgp7", "--no-secmem-warning", "-a", "-e"]
+		
+		# add recipients
+		for recipient in self._recipients:
+			cmd.append("-r")
+			cmd.append(recipient)
+		
+		# add on the charset, if set
+		if self._charset:
+			cmd.append("--comment")
+			cmd.append('Charset: ' + self._charset)
+		
+		return cmd
