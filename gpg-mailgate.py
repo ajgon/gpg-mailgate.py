@@ -41,11 +41,11 @@ def send_msg( message, recipients = None ):
 	smtp.sendmail( from_addr, recipients, message.as_string() )
 
 def encrypt_payload( payload, gpg_to_cmdline ):
-	gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline )
 	raw_payload = payload.get_payload(decode=True)
-	gpg.update( raw_payload )
 	if "-----BEGIN PGP MESSAGE-----" in raw_payload and "-----END PGP MESSAGE-----" in raw_payload:
 		return payload
+	gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline )
+	gpg.update( raw_payload )
 	payload.set_payload( gpg.encrypt() )
 	if payload['Content-Disposition']:
 		payload.replace_header( 'Content-Disposition', re.sub(r'filename="([^"]+)"', r'filename="\1.pgp"', payload['Content-Disposition']) )
