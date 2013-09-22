@@ -1,6 +1,5 @@
 [default]
 add_header = yes
-domains = example.com,corp.org
 
 [gpg]
 keyhome = /var/gpg/.gnupg
