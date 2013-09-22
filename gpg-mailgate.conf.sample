@@ -1,15 +1,22 @@
 [default]
+# whether gpg-mailgate should add a header after it has processed an email
+# this may be useful for debugging purposes
 add_header = yes
 
 [gpg]
+# the directory where gpg-mailgate public keys are stored
+# (see INSTALL for details)
 keyhome = /var/gpg/.gnupg
 
 [logging]
-# For logging to syslog. 'file = syslog'
+# For logging to syslog. 'file = syslog', otherwise use path to the file.
 file = /tmp/gpg-mailgate.log
 #verbose = yes
 
 [relay]
+# the relay settings to use for Postfix
+# gpg-mailgate will submit email to this relay after it is done processing
+# unless you alter the default Postfix configuration, you won't have to modify this
 host = 127.0.0.1
 port = 10028
 
