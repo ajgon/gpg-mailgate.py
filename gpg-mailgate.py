@@ -70,7 +70,7 @@ def encrypt_payload( payload, gpg_to_cmdline ):
 					payload.set_param( 'name', pgpFilename )
 
 	if payload.get('Content-Transfer-Encoding') is not None:
-		payload.replace_header( 'Content-Transfer-Encoding', "quoted-printable" )
+		payload.replace_header( 'Content-Transfer-Encoding', "7bit" )
 
 	return payload
 
