@@ -24,3 +24,15 @@ gpg-mailgate	unix	-	n	n	-	-	pipe
 content_filter = gpg-mailgate
 
 7) Restart postfix.
+
+Note 1: it is also possible to create a dedicated user to store the PGP public keys
+
+	1) useradd -s /bin/false -d /var/gpg -M gpgmap
+	2) mkdir -p /var/gpg/.gnupg
+	3) chown -R gpgmap /var/gpg
+	4) chmod 700 /var/gpg/.gnupg
+	5) sudo -u gpgmap /usr/bin/gpg --import /home/youruser/public.key --homedir=/var/gpg/.gnupg
+		a) replace the path with the location of your public key
+		b) the path can be deleted after importation
+	6) Confirm that it's working: sudo -u gpgmap /usr/bin/gpg --list-keys --homedir=/var/gpg/.gnupg
+	7) Use keyhome = /var/gpg/.gnupg in gpg-mailgate.conf
