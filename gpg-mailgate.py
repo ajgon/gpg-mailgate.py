@@ -94,14 +94,6 @@ keys = GnuPG.public_keys( cfg['gpg']['keyhome'] )
 gpg_to = list()
 ungpg_to = list()
 
-for enc in encrypted_to_addrs:
-	if enc in keys:
-		gpg_to.append( (enc, enc) )
-	elif cfg.has_key('keymap') and cfg['keymap'].has_key(enc):
-		gpg_to.append( (enc, cfg['keymap'][enc]) )
-	else:
-		ungpg_to.append(enc)
-
 for to in to_addrs:
 	if to in keys:
 		gpg_to.append( (to, to) )
