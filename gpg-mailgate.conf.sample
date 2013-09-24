@@ -3,6 +3,11 @@
 # this may be useful for debugging purposes
 add_header = yes
 
+# whether we should only sign emails if they are explicitly defined in
+#  the key mappings below ([keymap] section)
+# this means gpg-mailgate won't automatically detect PGP recipients
+keymap_only = no
+
 [gpg]
 # the directory where gpg-mailgate public keys are stored
 # (see INSTALL for details)
