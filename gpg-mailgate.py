@@ -47,7 +47,7 @@ def send_msg( message, recipients = None ):
 def encrypt_payload( payload, gpg_to_cmdline ):
 	gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline, payload.get_content_charset() )
 	raw_payload = payload.get_payload(decode=True)
-	if ("-----BEGIN PGP MESSAGE-----" in raw_payload and "-----END PGP MESSAGE-----" in raw_payload) or ("-----BEGIN PGP SIGNED MESSAGE-----" in raw_payload):
+	if "-----BEGIN PGP MESSAGE-----" in raw_payload and "-----END PGP MESSAGE-----" in raw_payload:
 		return payload
 	gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline, payload.get_content_charset() )
 	gpg.update( raw_payload )
