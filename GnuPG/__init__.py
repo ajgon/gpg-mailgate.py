@@ -2,8 +2,8 @@ import os
 import subprocess
 
 def public_keys( keyhome ):
-	cmd = '/usr/bin/gpg --homedir %s --list-keys --with-colons' % keyhome
-	p = subprocess.Popen( cmd.split(' '), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+	cmd = ['/usr/bin/gpg', '--homedir', keyhome, '--list-keys', '--with-colons']
+	p = subprocess.Popen( cmd, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE )
 	p.wait()
 	keys = list()
 	for line in p.stdout.readlines():
