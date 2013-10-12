@@ -8,6 +8,7 @@ import re
 import GnuPG
 import smtplib
 import sys
+import syslog
 
 # Read configuration from /etc/gpg-mailgate.conf
 _cfg = RawConfigParser()
@@ -18,11 +19,24 @@ for sect in _cfg.sections():
 	for (name, value) in _cfg.items(sect):
 		cfg[sect][name] = value
 
+def log(msg):
+	if cfg.has_key('logging') and cfg['logging'].has_key('file'):
+		if cfg['logging']['file'] == "syslog":
+			syslog.syslog(syslog.LOG_INFO | syslog.LOG_MAIL, msg)
+		else:
+			logfile = open(cfg['logging']['file'], 'a')
+			logfile.write(msg + "\n")
+			logfile.close()
+
+verbose=cfg.has_key('logging') and cfg['logging'].has_key('verbose') and cfg['logging']['verbose'] == 'yes'
+
 # Read e-mail from stdin
 raw = sys.stdin.read()
 raw_message = email.message_from_string( raw )
 from_addr = raw_message['From']
 to_addrs = sys.argv[1:]
+if verbose:
+	log("to_addrs: '%s'" % "', '".join(to_addrs))
 
 encrypted_to_addrs = list()
 if raw_message.has_key('X-GPG-Encrypt-Cc'):
@@ -32,10 +46,7 @@ if raw_message.has_key('X-GPG-Encrypt-Cc'):
 def send_msg( message, recipients = None ):
 	if recipients == None:
 		recipients = to_addrs
-	if cfg.has_key('logging') and cfg['logging'].has_key('file'):
-		log = open(cfg['logging']['file'], 'a')
-		log.write("Sending email to: <%s>\n" % '> <'.join( recipients ))
-		log.close()
+	log("Sending email to: <%s>" % '> <'.join( recipients ))
 	relay = (cfg['relay']['host'], int(cfg['relay']['port']))
 	smtp = smtplib.SMTP(relay[0], relay[1])
 	smtp.sendmail( from_addr, recipients, message.as_string() )
@@ -91,27 +102,34 @@ for to in to_addrs:
 	domain = to.split('@')[1]
 	if domain in cfg['default']['domains'].split(','):
 		if to in keys:
+			if verbose:
+				log("Found public key for '%s' on keyring." % to)
 			gpg_to.append( (to, to) )
 		elif cfg.has_key('keymap') and cfg['keymap'].has_key(to):
+			if verbose:
+				log("Found public key for '%s' in keymap (%s)." % (to, cfg['keymap'][to]))
 			gpg_to.append( (to, cfg['keymap'][to]) )
 		else:
+			if verbose:
+				log("Found no public key for '%s'." % to)
 			ungpg_to.append(to);
 	else:
+		if verbose:
+			log("Recipient (%s) not in domain list." % to)
 		ungpg_to.append(to)
 
 if gpg_to == list():
 	if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 		raw_message['X-GPG-Mailgate'] = 'Not encrypted, public key not found'
+	if verbose:
+		log("No encrypted recipients.")
 	send_msg( raw_message )
 	exit()
 
 if ungpg_to != list():
 	send_msg( raw_message, ungpg_to )
 
-if cfg.has_key('logging') and cfg['logging'].has_key('file'):
-	log = open(cfg['logging']['file'], 'a')
-	log.write("Encrypting email to: %s\n" % ' '.join( map(lambda x: x[0], gpg_to) ))
-	log.close()
+log("Encrypting email to: %s" % ' '.join( map(lambda x: x[0], gpg_to) ))
 
 if cfg['default'].has_key('add_header') and cfg['default']['add_header'] == 'yes':
 	raw_message['X-GPG-Mailgate'] = 'Encrypted by GPG Mailgate'
