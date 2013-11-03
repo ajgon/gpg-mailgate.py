@@ -6,7 +6,9 @@ domains = example.com,corp.org
 keyhome = /var/gpg/.gnupg
 
 [logging]
+# For logging to syslog. 'file = syslog'
 file = /tmp/gpg-mailgate.log
+#verbose = yes
 
 [relay]
 host = 127.0.0.1
