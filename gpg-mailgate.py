@@ -45,14 +45,11 @@ def send_msg( message, recipients = None ):
 	smtp.sendmail( from_addr, recipients, message.as_string() )
 
 def encrypt_payload( payload, gpg_to_cmdline ):
-	gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline, payload.get_content_charset() )
 	raw_payload = payload.get_payload(decode=True)
 	if "-----BEGIN PGP MESSAGE-----" in raw_payload and "-----END PGP MESSAGE-----" in raw_payload:
 		return payload
 	gpg = GnuPG.GPGEncryptor( cfg['gpg']['keyhome'], gpg_to_cmdline, payload.get_content_charset() )
 	gpg.update( raw_payload )
-	if "-----BEGIN PGP MESSAGE-----" in raw_payload and "-----END PGP MESSAGE-----" in raw_payload:
-		return payload
 	payload.set_payload( gpg.encrypt() )
 	
 	isAttachment = payload.get_param( 'attachment', None, 'Content-Disposition' ) is not None
